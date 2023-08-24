@@ -1,0 +1,40 @@
+name: SonarQube and ARM Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    
+    - name: Install dependencies and run tests
+      run: |
+        npm install
+        npm test
+    
+    - name: SonarQube analysis
+      uses: sonarsource/sonarqube-scan-action@v1
+      with:
+        sonar-token: ${{ secrets.SONAR_TOKEN }}
+        project-key: your_project_key
+        project-name: Your Project Name
+        project-version: 1.0
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Deploy ARM Template
+      run: az deployment group create --resource-group mytestrg --template-file template.json
